@@ -469,6 +469,15 @@ summary(model)
 model2 <- lm(logtpl ~ logmi + logrecovery + logshape, data = overall)
 summary(model2)
 
+##multicollinearity test
+vars <- overall[, c("logtpl","logmi", "logshape", "logrecovery")]
+cor_matrix <- cor(vars, use = "complete.obs")
+cor_test <- cor.mtest(vars, conf.level = 0.95)
+
+library(car)
+vif_values <- vif(model2)
+print(vif_values)
+
 # Relative Importance (LMG)
 metrics <- calc.relimp(model2, type = "lmg", rela = TRUE)
 
