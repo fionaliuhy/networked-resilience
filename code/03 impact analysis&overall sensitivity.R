@@ -273,7 +273,28 @@ for (r in seq_len(rep_times)) {
 }
 
 res_multi_en <- bind_rows(stab_list_multi)
-write.csv(res_multi_en, paste0(base_path, "step4_multi_dml_en_coeffs.csv"), row.names = FALSE)
+
+stab_summary_md <- res_multi_en %>%
+  group_by(D) %>%
+  summarise(
+    mean_coef       = mean(coef),
+    sd_coef         = sd(coef),
+    q025            = quantile(coef, 0.025),
+    q975            = quantile(coef, 0.975),
+    share_same_sign = mean(sign(coef) == sign(mean(coef))),
+    share_sig_10pct = mean(pval < 0.10),
+    share_sig_5pct  = mean(pval < 0.05),    
+    # --- Chernozhukov et al. (2018) ---
+    agg_coef = median(coef),
+    # agg_se (Median of variance + penalty for cross-fitting instability)
+    agg_se = sqrt(median(se^2 + (coef - median(coef))^2)),
+    # agg_pval
+    agg_tval = median(coef) / sqrt(median(se^2 + (coef - median(coef))^2)),
+    agg_pval = 2 * (1 - pnorm(abs( median(coef) / sqrt(median(se^2 + (coef - median(coef))^2)) ))),    
+    .groups = "drop"
+  )
+             
+write.csv(stab_summary_md, paste0(base_path, "step4_multi_dml_en_coeffs.csv"), row.names = FALSE)
 
 # ==============================================================================
 # 9. Step 5: Scenario / Counterfactual Analysis (Raw + Winsorized)
