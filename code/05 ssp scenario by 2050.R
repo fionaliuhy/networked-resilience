@@ -547,9 +547,22 @@ for (b in 1:B) {
   df_b[, tpl_base_val := pmax(0, pmin(365, tpl_int + tpl_slope * tpl_pred_lev))]
   
   # Sample Lambda
+  ###Technological Heterogeneity and Uncertainty--main manuscript
   l_min <- pmin(df_b$lambda1, df_b$lambda2, na.rm=TRUE); l_min[is.na(l_min)] <- 0
   l_max <- pmax(df_b$lambda1, df_b$lambda2, na.rm=TRUE); l_max[is.na(l_max)] <- 0
   lambda_vec <- runif(n_rows, l_min, l_max)
+
+  ###static tech level
+  lambda_vec <- df_b$lambda1
+  lambda_vec[is.na(lambda_vec)] <- 0
+  
+   ###accelerated tech growth
+   y_start <- 2023
+   y_end   <- 2050
+   t_ratio <- pmin(pmax((df_b$year - y_start) / (y_end - y_start), 0), 1)
+   weight <- t_ratio^2 
+   lambda_vec <- df_b$lambda1 + weight * (df_b$lambda2 - df_b$lambda1)
+   lambda_vec[is.na(lambda_vec)] <- 0
   
   # Calculate Outcome
   df_b[, tpl_delta := tpl_base_val * rel_med] # Change due to network
